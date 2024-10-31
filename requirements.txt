@@ -3,3 +3,4 @@ gtts
 pyttsx3
 google-cloud-texttospeech
 pydub
+streamlit-authenticator
