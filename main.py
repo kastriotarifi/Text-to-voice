@@ -6,20 +6,21 @@ import time
 def main():
     st.title("Text to Speech Converter")
 
-    # Check if the user has clicked the button
-    if 'converter_enabled' not in st.session_state:
-        st.session_state.converter_enabled = False
+    # Check if the user has clicked the link
+    if 'link_clicked' not in st.session_state:
+        st.session_state.link_clicked = False
 
-    if not st.session_state.converter_enabled:
-        if st.button("Use Converter"):
-            # Enable the converter and show link
-            st.session_state.converter_enabled = True
-            st.success("Converter enabled! You can now use it.")
-            time.sleep(2)  # Optional delay for a smoother transition
-            st.markdown("[Click here to open the website](https://example.com)")  # Change to your desired URL
+    # Show the link and button if the link hasn't been clicked
+    if not st.session_state.link_clicked:
+        if st.button("Open Website"):
+            # Simulate opening a website
+            st.session_state.link_clicked = True
+            st.success("You have clicked the link! You can now use the converter.")
+            st.markdown("[Click here to visit the website](https://example.com)")  # Change to your desired URL
+            time.sleep(2)  # Optional delay
 
-    if st.session_state.converter_enabled:
-        # Text input
+    # Converter logic
+    if st.session_state.link_clicked:
         text = st.text_area("Enter text to convert to speech:", height=150)
 
         # Language options for voice selection
