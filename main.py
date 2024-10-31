@@ -1,6 +1,5 @@
 import streamlit as st
 from gtts import gTTS
-import webbrowser
 import time
 
 # Streamlit application
@@ -13,11 +12,11 @@ def main():
 
     if not st.session_state.converter_enabled:
         if st.button("Use Converter"):
-            # Open a website and enable the converter
-            webbrowser.open("https://example.com")  # Change to your desired URL
+            # Enable the converter and show link
             st.session_state.converter_enabled = True
             st.success("Converter enabled! You can now use it.")
             time.sleep(2)  # Optional delay for a smoother transition
+            st.markdown("[Click here to open the website](https://example.com)")  # Change to your desired URL
 
     if st.session_state.converter_enabled:
         # Text input
