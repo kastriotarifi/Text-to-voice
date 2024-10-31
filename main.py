@@ -1,8 +1,27 @@
 import streamlit as st
+import streamlit_authenticator as stauth
 from gtts import gTTS
 
-# Streamlit application
-def main():
+# User credentials
+users = {
+    "user1": {"name": "User One", "password": "password1"},
+    "user2": {"name": "User Two", "password": "password2"},
+}
+
+# Create authenticator object
+authenticator = stauth.Authenticate(
+    names=[user["name"] for user in users.values()],
+    usernames=list(users.keys()),
+    passwords=[user["password"] for user in users.values()],
+    cookie_name="some_cookie_name",
+    key="some_key",
+    cookie_expiry_days=30,
+)
+
+# Login
+name, authentication_status = authenticator.login("Login", "main")
+
+if authentication_status:
     st.title("Text to Speech Converter")
 
     # Text input
@@ -28,20 +47,16 @@ def main():
             audio_file = "output.mp3"
             tts.save(audio_file)
 
-            # Audio preview
-            audio_preview = open(audio_file, "rb").read()
-            st.audio(audio_preview, format="audio/mp3")
-
-            # Download link
-            st.download_button(
-                label="Download Audio",
-                data=audio_preview,
-                file_name="output.mp3",
-                mime="audio/mp3"
-            )
-            st.success("Voice generated and available for download and preview.")
+            # Provide download link
+            with open(audio_file, "rb") as f:
+                st.download_button(
+                    label="Download Audio",
+                    data=f,
+                    file_name="output.mp3",
+                    mime="audio/mp3"
+                )
+            st.success("Voice generated and saved successfully!")
         else:
             st.error("Please enter some text to convert.")
-
-if __name__ == '__main__':
-    main()
+else:
+    st.warning("Please enter your username and password to access the app.")
