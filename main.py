@@ -1,48 +1,45 @@
 import streamlit as st
-import pyttsx3
-from io import BytesIO
+from gtts import gTTS
+import os
 
-# Initialize pyttsx3
-engine = pyttsx3.init()
-
-# Retrieve available voices
-voices = engine.getProperty('voices')
-voice_options = [("Male", voice) for voice in voices if "male" in voice.id.lower()] + \
-                [("Female", voice) for voice in voices if "female" in voice.id.lower()]
-
-def save_audio(engine, text, voice_id):
-    """Save audio to a BytesIO buffer."""
-    engine.setProperty('voice', voice_id)
-    audio_buffer = BytesIO()
-    engine.save_to_file(text, "output.mp3")
-    engine.runAndWait()
-    audio_buffer.seek(0)
-    return audio_buffer
-
+# Streamlit application
 def main():
-    st.title("Text-to-Speech Converter")
+    st.title("Text to Speech Converter")
 
     # Text input
-    text = st.text_area("Enter text to convert to speech:")
+    text = st.text_area("Enter text to convert to speech:", height=150)
 
-    # Select voice
-    selected_voice = st.selectbox("Select Voice Type", voice_options, format_func=lambda x: x[0])
+    # Language options for voice selection
+    language_options = {
+        "English": "en",
+        "Spanish": "es",
+        "French": "fr",
+        "German": "de",
+        "Italian": "it",
+        "Chinese": "zh",
+    }
+    selected_language = st.selectbox("Select Language", options=list(language_options.keys()))
 
-    # Generate voice when button is pressed
-    if st.button("Generate Voice"):
-        if text.strip():
-            audio_buffer = save_audio(engine, text, selected_voice[1].id)
-            st.audio(audio_buffer, format="audio/mp3")
+    if st.button("Convert to Voice"):
+        if text:
+            # Initialize gTTS object with the input text and selected language
+            tts = gTTS(text=text, lang=language_options[selected_language], slow=False)
 
-            # Download button
-            st.download_button(
-                label="Download Audio",
-                data=audio_buffer,
-                file_name="output.mp3",
-                mime="audio/mp3"
-            )
+            # Save the audio file
+            audio_file = "output.mp3"
+            tts.save(audio_file)
+
+            # Provide download link
+            with open(audio_file, "rb") as f:
+                st.download_button(
+                    label="Download Audio",
+                    data=f,
+                    file_name="output.mp3",
+                    mime="audio/mp3"
+                )
+            st.success("Voice generated and saved successfully!")
         else:
             st.error("Please enter some text to convert.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
