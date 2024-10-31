@@ -25,11 +25,11 @@ authenticator = stauth.Authenticate(
 )
 
 # Login
-name, authentication_status = authenticator.login("Login", "main")
+name, authentication_status = authenticator.login("Login", "main")  # Use 'main' or 'sidebar'
 
 if authentication_status:
     st.title("Text to Speech Converter")
-
+    
     # Text input
     text = st.text_area("Enter text to convert to speech:", height=150)
 
