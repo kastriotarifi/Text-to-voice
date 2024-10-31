@@ -1,6 +1,5 @@
 import streamlit as st
 from gtts import gTTS
-import time
 
 # Streamlit application
 def main():
@@ -17,7 +16,7 @@ def main():
             st.session_state.link_clicked = True
             st.success("You have clicked the link! You can now use the converter.")
             st.markdown("[Click here to visit the website](https://example.com)")  # Change to your desired URL
-            time.sleep(2)  # Optional delay
+            st.balloons()  # Optional: Celebrate the link click
 
     # Converter logic
     if st.session_state.link_clicked:
