@@ -1,6 +1,5 @@
 import streamlit as st
 from gtts import gTTS
-import os
 
 # Streamlit application
 def main():
@@ -29,15 +28,18 @@ def main():
             audio_file = "output.mp3"
             tts.save(audio_file)
 
-            # Provide download link
-            with open(audio_file, "rb") as f:
-                st.download_button(
-                    label="Download Audio",
-                    data=f,
-                    file_name="output.mp3",
-                    mime="audio/mp3"
-                )
-            st.success("Voice generated and saved successfully!")
+            # Audio preview
+            audio_preview = open(audio_file, "rb").read()
+            st.audio(audio_preview, format="audio/mp3")
+
+            # Download link
+            st.download_button(
+                label="Download Audio",
+                data=audio_preview,
+                file_name="output.mp3",
+                mime="audio/mp3"
+            )
+            st.success("Voice generated and available for download and preview.")
         else:
             st.error("Please enter some text to convert.")
 
