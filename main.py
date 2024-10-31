@@ -2,7 +2,7 @@ import streamlit as st
 from gtts import gTTS
 from datetime import datetime, timedelta
 
-# Initialize session state
+# Initialize session state variables
 if 'conversion_count' not in st.session_state:
     st.session_state.conversion_count = 0
 if 'last_reset' not in st.session_state:
@@ -38,6 +38,7 @@ def main():
 
     if st.button("Convert to Voice"):
         if text:
+            # Check if the user has reached the daily limit
             if st.session_state.conversion_count < 3:
                 # Initialize gTTS object with the input text and selected language
                 tts = gTTS(text=text, lang=language_options[selected_language], slow=False)
