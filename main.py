@@ -4,8 +4,7 @@ from gtts import gTTS
 # Check if user is logged in
 if "user_name" not in st.session_state:
     st.warning("You need to log in first.")
-    if st.button("Login"):
-        st.experimental_rerun()  # This will reload the app and show the login interface
+    st.button("Go to Login", on_click=lambda: st.session_state.update({"login_page": True}))
     st.stop()  # Stop execution if not logged in
 
 st.title("Text to Speech Converter")
