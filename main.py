@@ -1,25 +1,48 @@
 import streamlit as st
 from gtts import gTTS
-from datetime import datetime, timedelta
+from datetime import datetime
 
-# Initialize session state variables
-if 'conversion_count' not in st.session_state:
-    st.session_state.conversion_count = 0
-if 'last_reset' not in st.session_state:
-    st.session_state.last_reset = datetime.now()
+# JavaScript code to get and set local storage
+get_local_storage = """
+<script>
+function getConversionCount() {
+    return localStorage.getItem('conversion_count') || '0';
+}
+function setConversionCount(count) {
+    localStorage.setItem('conversion_count', count);
+}
+function resetConversionCount() {
+    localStorage.setItem('conversion_count', '0');
+}
+</script>
+"""
 
-# Function to reset the conversion count
-def reset_conversion_count():
-    if datetime.now() - st.session_state.last_reset >= timedelta(days=1):
+# Function to reset count if it's a new day
+def reset_count_if_new_day():
+    last_reset = st.session_state.get('last_reset', None)
+    if last_reset is None or (datetime.now() - last_reset).days > 0:
         st.session_state.conversion_count = 0
         st.session_state.last_reset = datetime.now()
+        st.components.v1.html("<script>resetConversionCount();</script>", height=0)
+
+# Function to get the conversion count from local storage
+def get_conversion_count():
+    count = st.session_state.get('conversion_count', 0)
+    return int(count)
 
 # Streamlit application
 def main():
     st.title("Text to Speech Converter")
-    reset_conversion_count()
+    
+    # Insert JS code
+    st.components.v1.html(get_local_storage, height=0)
 
-    # Show remaining conversions
+    reset_count_if_new_day()
+
+    # Get current conversion count from local storage
+    current_count = get_conversion_count()
+    st.session_state.conversion_count = current_count
+
     st.write(f"You have {3 - st.session_state.conversion_count} conversions left today.")
 
     # Text input
@@ -38,7 +61,6 @@ def main():
 
     if st.button("Convert to Voice"):
         if text:
-            # Check if the user has reached the daily limit
             if st.session_state.conversion_count < 3:
                 # Initialize gTTS object with the input text and selected language
                 tts = gTTS(text=text, lang=language_options[selected_language], slow=False)
@@ -62,6 +84,8 @@ def main():
 
                 # Increment conversion count
                 st.session_state.conversion_count += 1
+                # Update local storage
+                st.components.v1.html(f"<script>setConversionCount({st.session_state.conversion_count});</script>", height=0)
             else:
                 st.error("You have reached your daily limit of 3 conversions.")
         else:
