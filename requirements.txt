@@ -2,3 +2,4 @@ streamlit
 gtts
 pyttsx3
 google-cloud-texttospeech
+pydub
