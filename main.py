@@ -1,62 +1,77 @@
-import streamlit as st
-from gtts import gTTS
-import tempfile
 import os
+import streamlit as st
+from google.cloud import texttospeech
+from google.oauth2 import service_account
+import tempfile
+
+# Authenticate to Google Cloud
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"]  # Streamlit Cloud secrets
+)
+client = texttospeech.TextToSpeechClient(credentials=credentials)
 
 # Streamlit application
 def main():
-    st.title("Advanced Text-to-Speech Converter")
+    st.title("Text-to-Speech with Gender and Voice Options")
 
     # Text input
     text = st.text_area("Enter text to convert to speech:", height=150)
 
-    # Language and voice options
-    language_options = {
-        "English (US, Male)": ("en", "com"),
-        "English (UK, Female)": ("en", "gb"),
-        "French (Male)": ("fr", "fr"),
-        "French (Female)": ("fr", "ca"),
-        "Spanish (Male)": ("es", "es"),
-        "Spanish (Female)": ("es", "mx"),
+    # Gender and voice options
+    gender_options = {
+        "Male - Deep": texttospeech.SsmlVoiceGender.MALE,
+        "Male - Light": texttospeech.SsmlVoiceGender.MALE,
+        "Female - Neutral": texttospeech.SsmlVoiceGender.FEMALE,
+        "Female - High Pitch": texttospeech.SsmlVoiceGender.FEMALE
     }
-    selected_voice = st.selectbox("Select Voice", options=list(language_options.keys()))
+    selected_gender = st.selectbox("Select Voice", options=list(gender_options.keys()))
 
-    # Voice style options (deep/light)
-    voice_style = st.radio("Select Voice Style", options=["Normal", "Deep", "Light"])
+    # Voice style options
+    pitch = -2.0 if "Deep" in selected_gender else (2.0 if "High Pitch" in selected_gender else 0.0)
 
-    # Handle the TTS synthesis on button click
     if st.button("Convert and Preview"):
         if text:
-            # Fetch selected language and accent
-            lang_code, accent = language_options[selected_voice]
-            slow_speed = voice_style == "Deep"
-            fast_speed = voice_style == "Light"
-            
-            # Set speed for gTTS based on voice style
-            tts = gTTS(text=text, lang=lang_code, slow=slow_speed)
-            
-            # Save to a temporary file to allow preview and download
+            # Configure synthesis input
+            synthesis_input = texttospeech.SynthesisInput(text=text)
+
+            # Configure voice parameters
+            voice = texttospeech.VoiceSelectionParams(
+                language_code="en-US",
+                ssml_gender=gender_options[selected_gender]
+            )
+
+            # Configure audio settings
+            audio_config = texttospeech.AudioConfig(
+                audio_encoding=texttospeech.AudioEncoding.MP3,
+                pitch=pitch
+            )
+
+            # Perform TTS request
+            response = client.synthesize_speech(
+                input=synthesis_input, voice=voice, audio_config=audio_config
+            )
+
+            # Save audio to a temporary file for playback and download
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
-                audio_path = temp_audio.name
-                tts.save(audio_path)
-            
-            # Play audio in Streamlit for preview
-            audio_file = open(audio_path, "rb")
-            st.audio(audio_file, format="audio/mp3")
+                temp_audio.write(response.audio_content)
+                temp_audio_path = temp_audio.name
+
+            # Audio playback and download button
+            audio_file = open(temp_audio_path, "rb")
+            st.audio(audio_file.read(), format="audio/mp3")
             audio_file.close()
 
-            # Provide download link
-            with open(audio_path, "rb") as f:
+            # Download option
+            with open(temp_audio_path, "rb") as f:
                 st.download_button(
                     label="Download Audio",
                     data=f,
                     file_name="output.mp3",
                     mime="audio/mp3"
                 )
-            st.success("Voice generated, previewed, and ready for download!")
-            
-            # Clean up temporary file after download
-            os.remove(audio_path)
+
+            st.success("Audio generated and ready for download!")
+            os.remove(temp_audio_path)
         else:
             st.error("Please enter some text to convert.")
 
