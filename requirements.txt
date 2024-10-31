@@ -1,2 +1,2 @@
-google-cloud-texttospeech==2.11.0
-streamlit==1.22.0
+streamlit
+gtts
