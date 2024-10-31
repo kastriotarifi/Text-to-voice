@@ -5,18 +5,16 @@ from gtts import gTTS
 def main():
     st.title("Text to Speech Converter")
 
-    # Check if the user has clicked the link
+    # Initialize session state for link click
     if 'link_clicked' not in st.session_state:
         st.session_state.link_clicked = False
 
-    # Show the link and button if the link hasn't been clicked
+    # Show the button to use the converter
     if not st.session_state.link_clicked:
-        if st.button("Open Website"):
-            # Simulate opening a website
+        if st.button("Use Converter"):
             st.session_state.link_clicked = True
-            st.success("You have clicked the link! You can now use the converter.")
+            st.success("You can now use the converter!")
             st.markdown("[Click here to visit the website](https://example.com)")  # Change to your desired URL
-            st.balloons()  # Optional: Celebrate the link click
 
     # Converter logic
     if st.session_state.link_clicked:
