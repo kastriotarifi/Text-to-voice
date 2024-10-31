@@ -1,40 +1,47 @@
 import streamlit as st
 from gtts import gTTS
-from io import BytesIO
 
+# Streamlit application
 def main():
-    st.title("Text-to-Speech Converter")
+    st.title("Text to Speech Converter")
 
     # Text input
-    text = st.text_area("Enter text to convert to speech:")
+    text = st.text_area("Enter text to convert to speech:", height=150)
 
-    # Select voice characteristics
-    gender = st.selectbox("Select Voice Type", ["Male", "Female"])
-    tone = st.selectbox("Select Tone", ["Normal", "Deep", "Light"])
+    # Language options for voice selection
+    language_options = {
+        "English": "en",
+        "Spanish": "es",
+        "French": "fr",
+        "German": "de",
+        "Italian": "it",
+        "Chinese": "zh",
+    }
+    selected_language = st.selectbox("Select Language", options=list(language_options.keys()))
 
-    # Generate voice when the button is pressed
-    if st.button("Generate Voice"):
-        if text.strip():
-            # Generate TTS using gTTS
-            tts = gTTS(text=text, lang="en")
-            
-            # Save TTS to an audio buffer
-            audio_buffer = BytesIO()
-            tts.write_to_fp(audio_buffer)
-            audio_buffer.seek(0)
+    if st.button("Convert to Voice"):
+        if text:
+            # Initialize gTTS object with the input text and selected language
+            tts = gTTS(text=text, lang=language_options[selected_language], slow=False)
 
-            # Streamlit's audio player for preview
-            st.audio(audio_buffer, format="audio/mp3")
+            # Save the audio file
+            audio_file = "output.mp3"
+            tts.save(audio_file)
 
-            # Provide download link
+            # Audio preview
+            audio_preview = open(audio_file, "rb").read()
+            st.audio(audio_preview, format="audio/mp3")
+
+            # Download link
             st.download_button(
                 label="Download Audio",
-                data=audio_buffer,
+                data=audio_preview,
                 file_name="output.mp3",
                 mime="audio/mp3"
             )
+            st.success("Voice generated and available for download and preview.")
         else:
             st.error("Please enter some text to convert.")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
