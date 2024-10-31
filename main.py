@@ -1,49 +1,59 @@
 import streamlit as st
 from gtts import gTTS
-from datetime import datetime
+import time
 
-# JavaScript code to get and set local storage
-get_local_storage = """
+# JavaScript code for local storage handling
+local_storage_js = """
 <script>
-function getConversionCount() {
-    return localStorage.getItem('conversion_count') || '0';
-}
-function setConversionCount(count) {
-    localStorage.setItem('conversion_count', count);
-}
-function resetConversionCount() {
+if (!localStorage.getItem('conversion_count')) {
     localStorage.setItem('conversion_count', '0');
 }
+if (!localStorage.getItem('last_reset')) {
+    localStorage.setItem('last_reset', new Date().toISOString());
+}
+
+function resetConversionCountIfNewDay() {
+    const lastReset = new Date(localStorage.getItem('last_reset'));
+    const now = new Date();
+    
+    if (now.getDate() !== lastReset.getDate() || 
+        now.getMonth() !== lastReset.getMonth() || 
+        now.getFullYear() !== lastReset.getFullYear()) {
+        localStorage.setItem('conversion_count', '0');
+        localStorage.setItem('last_reset', now.toISOString());
+    }
+}
+
+function getConversionCount() {
+    return parseInt(localStorage.getItem('conversion_count'));
+}
+
+function incrementConversionCount() {
+    let count = getConversionCount();
+    count += 1;
+    localStorage.setItem('conversion_count', count.toString());
+}
+resetConversionCountIfNewDay();
 </script>
 """
-
-# Function to reset count if it's a new day
-def reset_count_if_new_day():
-    last_reset = st.session_state.get('last_reset', None)
-    if last_reset is None or (datetime.now() - last_reset).days > 0:
-        st.session_state.conversion_count = 0
-        st.session_state.last_reset = datetime.now()
-        st.components.v1.html("<script>resetConversionCount();</script>", height=0)
-
-# Function to get the conversion count from local storage
-def get_conversion_count():
-    count = st.session_state.get('conversion_count', 0)
-    return int(count)
 
 # Streamlit application
 def main():
     st.title("Text to Speech Converter")
     
-    # Insert JS code
-    st.components.v1.html(get_local_storage, height=0)
+    # Inject JavaScript into the Streamlit app
+    st.components.v1.html(local_storage_js, height=0)
 
-    reset_count_if_new_day()
+    # Display a link and wait for 5 seconds
+    st.write("Please visit this [link](https://example.com) and wait for 5 seconds...")
+    time.sleep(5)  # Wait for 5 seconds
 
-    # Get current conversion count from local storage
-    current_count = get_conversion_count()
+    # Get the current conversion count from local storage using JavaScript
+    current_count = st.session_state.get('conversion_count', 0)
     st.session_state.conversion_count = current_count
 
-    st.write(f"You have {3 - st.session_state.conversion_count} conversions left today.")
+    # Display remaining conversions
+    st.write(f"You have {10 - st.session_state.conversion_count} conversions left.")
 
     # Text input
     text = st.text_area("Enter text to convert to speech:", height=150)
@@ -61,7 +71,7 @@ def main():
 
     if st.button("Convert to Voice"):
         if text:
-            if st.session_state.conversion_count < 3:
+            if st.session_state.conversion_count < 10:
                 # Initialize gTTS object with the input text and selected language
                 tts = gTTS(text=text, lang=language_options[selected_language], slow=False)
 
@@ -82,12 +92,12 @@ def main():
                 )
                 st.success("Voice generated and available for download and preview.")
 
-                # Increment conversion count
+                # Increment conversion count in JavaScript
+                st.components.v1.html("<script>incrementConversionCount();</script>", height=0)
+                # Update session state count
                 st.session_state.conversion_count += 1
-                # Update local storage
-                st.components.v1.html(f"<script>setConversionCount({st.session_state.conversion_count});</script>", height=0)
             else:
-                st.error("You have reached your daily limit of 3 conversions.")
+                st.error("You have reached your daily limit of 10 conversions.")
         else:
             st.error("Please enter some text to convert.")
 
