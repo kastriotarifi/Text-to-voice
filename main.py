@@ -2,16 +2,16 @@ import streamlit as st
 import streamlit_authenticator as stauth
 from gtts import gTTS
 
-# User credentials
+# Define users and their hashed passwords
 users = {
     "user1": {"name": "User One", "password": "password1"},
     "user2": {"name": "User Two", "password": "password2"},
 }
 
-# Create authenticator object
+# Create authenticator
 authenticator = stauth.Authenticate(
-    names=[user["name"] for user in users.values()],
     usernames=list(users.keys()),
+    names=[user["name"] for user in users.values()],
     passwords=[user["password"] for user in users.values()],
     cookie_name="some_cookie_name",
     key="some_key",
